@@ -526,7 +526,257 @@ input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.12); }
 }
 .grid-count { font-size:0.75rem; color:var(--text2); margin-left:auto; }
 
-/* ── CROP TOOL ─────────────────────────── */
+/* ── POST EDITOR MODAL ──────────────────── */
+.modal-overlay {
+  display:none; position:fixed; inset:0; z-index:5000;
+  background:rgba(0,0,0,0.45); backdrop-filter:blur(8px);
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.show { display:flex; }
+
+.modal-sheet {
+  background:var(--surface); border-radius:var(--r-xl);
+  box-shadow:0 24px 80px rgba(0,0,0,0.22);
+  width:100%; max-width:580px; max-height:90vh;
+  overflow-y:auto; scrollbar-width:none;
+  animation: sheetIn .22s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-sheet::-webkit-scrollbar { display:none; }
+@keyframes sheetIn { from{opacity:0;transform:scale(.94) translateY(12px)} to{opacity:1;transform:none} }
+
+.modal-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:0.5px solid var(--border); position:sticky; top:0;
+  background:rgba(255,255,255,0.92); backdrop-filter:blur(12px); z-index:2;
+}
+.modal-title { font-size:0.9rem; font-weight:700; letter-spacing:-0.01em; }
+.modal-close {
+  width:28px; height:28px; border-radius:50%; background:var(--surface3);
+  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:0.85rem; color:var(--text2); transition:background .15s;
+}
+.modal-close:hover { background:#dddde3; }
+
+.modal-body { padding:20px; }
+
+/* Photo carousel in editor */
+.editor-photos-strip {
+  display:flex; gap:8px; overflow-x:auto; padding:4px 0 8px; scrollbar-width:none;
+}
+.editor-photos-strip::-webkit-scrollbar { display:none; }
+.editor-photo-thumb {
+  flex-shrink:0; width:72px; height:72px; border-radius:10px;
+  object-fit:cover; border:2px solid transparent; cursor:pointer; transition:border-color .15s;
+}
+.editor-photo-thumb.cover { border-color:var(--accent); }
+.editor-photo-add {
+  flex-shrink:0; width:72px; height:72px; border-radius:10px;
+  border:1.5px dashed #c7c7cc; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; background:var(--surface2); transition:border-color .15s; font-size:1.3rem; color:#c7c7cc;
+}
+.editor-photo-add:hover { border-color:var(--accent); color:var(--accent); }
+
+/* Post type toggle */
+.type-chips { display:flex; gap:6px; }
+.type-chip {
+  padding:6px 16px; border-radius:999px; border:1.5px solid var(--border2);
+  background:var(--surface2); font-family:inherit; font-size:0.78rem; font-weight:500;
+  cursor:pointer; color:var(--text2); transition:all .15s;
+}
+.type-chip.active { border-color:var(--accent); background:rgba(0,113,227,.08); color:var(--accent); }
+
+/* ── POST VIEWER MODAL ──────────────────── */
+.post-viewer-overlay {
+  display:none; position:fixed; inset:0; z-index:6000;
+  background:rgba(0,0,0,0.7); backdrop-filter:blur(10px);
+  align-items:center; justify-content:center; padding:0;
+}
+.post-viewer-overlay.show { display:flex; }
+
+.post-viewer-card {
+  background:#fff; border-radius:var(--r-xl);
+  box-shadow:0 32px 100px rgba(0,0,0,0.4);
+  width:100%; max-width:400px; max-height:95vh;
+  overflow:hidden; display:flex; flex-direction:column;
+  animation: sheetIn .22s cubic-bezier(.34,1.56,.64,1);
+}
+
+.pv-top {
+  display:flex; align-items:center; gap:9px; padding:10px 12px;
+  border-bottom:0.5px solid #efefef; flex-shrink:0;
+}
+.pv-ava { width:32px; height:32px; border-radius:50%; overflow:hidden; flex-shrink:0; }
+.pv-ava img { width:100%; height:100%; object-fit:cover; }
+.pv-username { font-size:0.78rem; font-weight:700; color:#1c1c1e; flex:1; }
+.pv-location { font-size:0.62rem; color:#737373; }
+.pv-close { margin-left:auto; background:none; border:none; cursor:pointer; font-size:1.1rem; color:#737373; padding:2px 6px; }
+
+/* Carousel */
+.pv-carousel { position:relative; flex-shrink:0; background:#000; }
+.pv-carousel-track { display:flex; transition:transform .3s ease; }
+.pv-carousel-slide { flex-shrink:0; width:100%; }
+.pv-carousel-slide img { width:100%; display:block; max-height:400px; object-fit:cover; }
+.pv-arrow {
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(255,255,255,0.88); border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:0.7rem;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2); transition:background .15s;
+}
+.pv-arrow:hover { background:white; }
+.pv-arrow.left { left:10px; }
+.pv-arrow.right { right:10px; }
+.pv-dots { position:absolute; bottom:7px; left:0; right:0; display:flex; justify-content:center; gap:4px; }
+.pv-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.5); transition:background .2s; }
+.pv-dot.on { background:white; }
+
+/* Actions */
+.pv-actions { display:flex; align-items:center; padding:9px 12px 4px; gap:14px; }
+.pv-act-btn { background:none; border:none; cursor:pointer; padding:2px; display:flex; align-items:center; }
+.pv-act-btn.liked svg { fill:#ed4956; stroke:#ed4956; }
+.pv-save-btn { margin-left:auto; background:none; border:none; cursor:pointer; }
+
+.pv-likes { font-size:0.78rem; font-weight:700; color:#1c1c1e; padding:0 12px 5px; }
+.pv-desc { font-size:0.76rem; color:#1c1c1e; padding:0 12px 5px; line-height:1.5; }
+.pv-desc strong { font-weight:700; margin-right:4px; }
+.pv-date { font-size:0.62rem; color:#aeaeb2; padding:0 12px 8px; }
+
+.pv-comments { max-height:120px; overflow-y:auto; padding:0 12px; scrollbar-width:none; }
+.pv-comments::-webkit-scrollbar { display:none; }
+.pv-comment-row { font-size:0.73rem; color:#1c1c1e; padding:3px 0; line-height:1.4; }
+.pv-comment-row strong { font-weight:700; margin-right:4px; }
+
+.pv-add-comment { display:flex; align-items:center; padding:8px 12px; border-top:0.5px solid #efefef; gap:8px; }
+.pv-add-comment input {
+  flex:1; border:none; outline:none; font-size:0.76rem; font-family:inherit;
+  color:#1c1c1e; background:transparent; placeholder-color:#aeaeb2;
+}
+.pv-add-comment button {
+  background:none; border:none; font-size:0.76rem; font-weight:600;
+  color:var(--accent); cursor:pointer; font-family:inherit; padding:0;
+}
+.pv-views { font-size:0.72rem; color:#737373; padding:0 12px 4px; }
+
+/* ── STORY VIEWER ──────────────────────── */
+.story-overlay {
+  display:none; position:fixed; inset:0; z-index:7000;
+  background:#000; align-items:center; justify-content:center;
+}
+.story-overlay.show { display:flex; }
+
+.story-phone {
+  width:340px; height:600px; position:relative; border-radius:24px;
+  overflow:hidden; background:#111;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.story-bg {
+  width:100%; height:100%; object-fit:cover; position:absolute; inset:0;
+  background:#1c1c1e;
+}
+.story-bg img { width:100%; height:100%; object-fit:cover; display:block; }
+
+.story-progress-bar {
+  position:absolute; top:10px; left:12px; right:12px;
+  display:flex; gap:3px; z-index:10;
+}
+.story-prog-seg {
+  flex:1; height:2.5px; background:rgba(255,255,255,0.3); border-radius:2px; overflow:hidden;
+}
+.story-prog-fill {
+  height:100%; background:white; width:0%; transition:width 5s linear;
+}
+.story-prog-fill.done { width:100%; transition:none; }
+.story-prog-fill.active { width:100%; }
+
+.story-top-bar {
+  position:absolute; top:20px; left:12px; right:12px;
+  display:flex; align-items:center; gap:8px; z-index:10;
+}
+.story-ava { width:30px; height:30px; border-radius:50%; overflow:hidden; border:1.5px solid white; flex-shrink:0; }
+.story-ava img { width:100%; height:100%; object-fit:cover; }
+.story-ava-ph { width:100%; height:100%; background:#444; display:flex; align-items:center; justify-content:center; }
+.story-username { font-size:0.78rem; font-weight:600; color:white; flex:1; }
+.story-time { font-size:0.65rem; color:rgba(255,255,255,0.6); }
+.story-close { background:none; border:none; cursor:pointer; color:white; font-size:1.2rem; padding:2px 6px; }
+
+/* Stickers layer */
+.story-stickers {
+  position:absolute; inset:0; pointer-events:none; z-index:8;
+}
+.story-sticker {
+  position:absolute; pointer-events:all; cursor:move;
+  user-select:none; touch-action:none;
+}
+.sticker-text {
+  color:white; font-size:1rem; font-weight:700; text-shadow:0 1px 4px rgba(0,0,0,0.5);
+  background:rgba(0,0,0,0.28); padding:4px 10px; border-radius:8px; white-space:nowrap;
+}
+.sticker-location {
+  background:white; color:#1c1c1e; font-size:0.7rem; font-weight:600;
+  padding:4px 10px; border-radius:999px; display:flex; align-items:center; gap:4px;
+}
+.sticker-countdown {
+  background:rgba(255,255,255,0.92); color:#1c1c1e; font-size:0.72rem; font-weight:700;
+  padding:6px 14px; border-radius:10px; text-align:center; min-width:80px;
+}
+.sticker-emoji { font-size:2rem; }
+
+/* Story bottom bar */
+.story-bottom {
+  position:absolute; bottom:0; left:0; right:0; z-index:10;
+  padding:16px 14px; display:flex; align-items:center; gap:10px;
+}
+.story-reply-input {
+  flex:1; background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3);
+  border-radius:999px; padding:8px 14px; color:white; font-size:0.78rem;
+  font-family:inherit; outline:none;
+}
+.story-reply-input::placeholder { color:rgba(255,255,255,0.5); }
+
+/* Story editor panel (sidebar) */
+.story-editor-panel {
+  background:var(--surface2); border-top:0.5px solid var(--border);
+  padding:14px 16px; display:flex; flex-direction:column; gap:10px;
+}
+.sticker-palette { display:flex; gap:6px; flex-wrap:wrap; }
+.sticker-palette-btn {
+  background:white; border:0.5px solid var(--border2); border-radius:8px;
+  padding:5px 10px; font-size:0.76rem; font-family:inherit; cursor:pointer;
+  transition:all .15s; color:var(--text);
+}
+.sticker-palette-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+/* Story close overlay */
+.story-nav-zone {
+  position:absolute; top:0; bottom:80px; z-index:9;
+  display:flex;
+}
+.story-nav-prev { flex:1; cursor:pointer; }
+.story-nav-next { flex:1; cursor:pointer; }
+
+/* ── REELS / TAGGED GRIDS ──────────────── */
+.ig-reel-badge {
+  position:absolute; top:4px; right:4px;
+  background:rgba(0,0,0,0.6); border-radius:4px;
+  padding:2px 5px; font-size:0.5rem; color:white; font-weight:600;
+}
+
+/* Grid tabs active indicator */
+.ig-grid-container { display:none; }
+.ig-grid-container.active-tab { display:block; }
+
+/* ── TRI → SIM SECTION ─────────────────── */
+.tri-sim-row {
+  display:flex; gap:8px; margin-top:10px;
+}
+.tri-sim-btn {
+  flex:1; padding:9px 6px; background:var(--surface2); border:0.5px solid var(--border2);
+  border-radius:10px; font-family:inherit; font-size:0.75rem; font-weight:500;
+  cursor:pointer; color:var(--text2); transition:all .15s; text-align:center;
+}
+.tri-sim-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,113,227,.05); }
+
 .crop-layout {
   display: grid;
   grid-template-columns: 1fr 320px;
@@ -710,6 +960,103 @@ canvas.xc { display:none; }
   .app-bar { padding:0 14px; gap:12px; }
   .page { padding:24px 14px 60px; }
 }
+
+/* == FLOATING LIBRARY PANEL == */
+.lib-fab {
+  position:fixed;bottom:28px;right:28px;z-index:4000;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--accent);box-shadow:0 4px 20px rgba(0,113,227,.35);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .18s;color:white;
+}
+.lib-fab:hover{background:var(--accent-h);transform:scale(1.08);box-shadow:0 6px 28px rgba(0,113,227,.45);}
+.lib-badge{
+  position:absolute;top:-3px;right:-3px;
+  background:#ff3b30;color:white;font-size:.58rem;font-weight:700;
+  width:18px;height:18px;border-radius:50%;
+  display:none;align-items:center;justify-content:center;border:2px solid white;
+}
+.lib-badge.show{display:flex;}
+.lib-drawer{
+  position:fixed;right:0;top:0;bottom:0;width:340px;z-index:3999;
+  background:var(--surface);box-shadow:-8px 0 40px rgba(0,0,0,.12);
+  display:flex;flex-direction:column;
+  transform:translateX(110%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+.lib-drawer.open{transform:translateX(0);}
+.lib-drawer-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px 14px;border-bottom:.5px solid var(--border);flex-shrink:0;
+}
+.lib-drawer-title{font-size:1rem;font-weight:700;letter-spacing:-.01em;}
+.lib-drawer-close{
+  width:28px;height:28px;border-radius:50%;background:var(--surface3);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;color:var(--text2);transition:background .15s;
+}
+.lib-drawer-close:hover{background:#dddde3;}
+.lib-drawer-actions{display:flex;gap:8px;padding:12px 16px;border-bottom:.5px solid var(--border);flex-shrink:0;}
+.lib-drawer-body{flex:1;overflow-y:auto;padding:14px;scrollbar-width:thin;}
+.lib-drawer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.lib-thumb{
+  position:relative;aspect-ratio:1/1;border-radius:10px;
+  overflow:hidden;cursor:pointer;background:var(--surface3);
+  box-shadow:var(--sh);transition:transform .15s;border:2px solid transparent;
+}
+.lib-thumb:hover{transform:scale(1.04);}
+.lib-thumb.selected{border-color:var(--accent);}
+.lib-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.lib-thumb-badge{
+  position:absolute;bottom:4px;left:4px;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  color:white;font-size:.52rem;font-weight:600;padding:2px 6px;border-radius:4px;
+}
+.lib-thumb-del{
+  position:absolute;top:4px;right:4px;
+  width:18px;height:18px;border-radius:50%;
+  background:rgba(0,0,0,.6);border:none;cursor:pointer;
+  color:white;font-size:.6rem;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .15s;
+}
+.lib-thumb:hover .lib-thumb-del{opacity:1;}
+.lib-source-label{
+  font-size:.68rem;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px;
+}
+.lib-source-label:first-child{margin-top:0;}
+.lib-empty-state{text-align:center;padding:40px 20px;font-size:.82rem;color:var(--text3);line-height:1.6;}
+.lib-picker-bar{
+  display:none;padding:12px 16px;border-top:.5px solid var(--border);
+  background:var(--surface2);flex-shrink:0;gap:8px;
+}
+.lib-picker-bar.show{display:flex;}
+.lib-picker-count{flex:1;font-size:.82rem;color:var(--text2);align-self:center;}
+.lib-dimmer{display:none;position:fixed;inset:0;z-index:3998;background:rgba(0,0,0,.18);backdrop-filter:blur(2px);}
+.lib-dimmer.show{display:block;}
+.cell-picker-overlay{
+  display:none;position:fixed;inset:0;z-index:5500;
+  align-items:center;justify-content:center;padding:20px;
+  background:rgba(0,0,0,.3);backdrop-filter:blur(6px);
+}
+.cell-picker-overlay.show{display:flex;}
+.cell-picker-card{
+  background:var(--surface);border-radius:var(--r-xl);
+  box-shadow:var(--sh-lg);padding:24px;width:100%;max-width:320px;
+  display:flex;flex-direction:column;gap:10px;
+  animation:sheetIn .2s cubic-bezier(.34,1.56,.64,1);
+}
+.cell-picker-title{font-size:.9rem;font-weight:700;margin-bottom:4px;}
+.cell-picker-btn{
+  width:100%;padding:13px;border-radius:var(--r);border:1.5px solid var(--border2);
+  background:var(--surface2);font-family:inherit;font-size:.88rem;font-weight:500;
+  cursor:pointer;text-align:left;transition:all .15s;color:var(--text);
+  display:flex;align-items:center;gap:12px;
+}
+.cell-picker-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,113,227,.04);}
+.pick-icon{
+  width:36px;height:36px;border-radius:10px;background:var(--surface3);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
 </style>
 </head>
 <body>
@@ -816,6 +1163,22 @@ canvas.xc { display:none; }
         <button class="dl-big" onclick="triDownloadAll()">Télécharger les 3 photos</button>
         <div class="note-box">
           <strong>📌 Ordre de publication :</strong> Publie dans l'ordre <strong>Photo 3 → 2 → 1</strong> (de droite à gauche) pour que le triptyque s'affiche correctement sur ton profil.
+        </div>
+        <div style="margin-top:14px">
+          <div style="font-size:0.72rem;font-weight:600;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">Bibliotheque</div>
+          <div class="tri-sim-row" style="margin-bottom:10px">
+            <button class="tri-sim-btn" onclick="saveTriToLib(0)">+ Photo 1</button>
+            <button class="tri-sim-btn" onclick="saveTriToLib(1)">+ Photo 2</button>
+            <button class="tri-sim-btn" onclick="saveTriToLib(2)">+ Photo 3</button>
+            <button class="tri-sim-btn" style="flex:1.4;border-color:var(--green);color:var(--green)" onclick="saveAllTriToLib()">+ Les 3</button>
+          </div>
+          <div style="font-size:.72rem;font-weight:600;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;margin-top:10px">Simulateur</div>
+          <div class="tri-sim-row">
+            <button class="tri-sim-btn" onclick="sendTriToSim(0)">Photo 1 -&gt;</button>
+            <button class="tri-sim-btn" onclick="sendTriToSim(1)">Photo 2 -&gt;</button>
+            <button class="tri-sim-btn" onclick="sendTriToSim(2)">Photo 3 -&gt;</button>
+            <button class="tri-sim-btn" style="flex:1.4;border-color:var(--accent);color:var(--accent)" onclick="sendAllTriToSim()">Les 3 -&gt;</button>
+          </div>
         </div>
       </div>
     </div>
@@ -995,6 +1358,10 @@ canvas.xc { display:none; }
 Paris, France 🇫🇷
 📩 contact@mail.com</textarea>
           </div>
+          <div class="field">
+            <label>Lien dans la bio</label>
+            <input type="text" id="simLink" value="" oninput="syncProfile()" placeholder="https://monsite.com">
+          </div>
         </div>
       </div>
 
@@ -1062,12 +1429,18 @@ Paris, France 🇫🇷
 
       <!-- Grid controls -->
       <div class="card">
-        <div class="card-header"><span class="card-title">Grille</span></div>
+        <div class="card-header"><span class="card-title">Grille & Posts</span></div>
         <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
-          <button class="btn btn-blue" style="width:100%;justify-content:center" onclick="triggerGridImport()">＋ Importer des photos</button>
-          <button class="btn btn-gray" style="width:100%;justify-content:center" onclick="clearGrid()">Vider la grille</button>
+          <button class="btn btn-blue" style="width:100%;justify-content:center" onclick="openPostEditor(null,'post')">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="3" stroke="white" stroke-width="1.5"/><line x1="7" y1="4" x2="7" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/><line x1="4" y1="7" x2="10" y2="7" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Nouveau post (carrousel)
+          </button>
+          <button class="btn btn-gray" style="width:100%;justify-content:center" onclick="openPostEditor(null,'reel')">Nouveau Reel</button>
+          <button class="btn btn-gray" style="width:100%;justify-content:center" onclick="triggerGridImport()">Importer photos rapides</button>
+          <button class="btn btn-gray" style="width:100%;justify-content:center" onclick="triggerTaggedImport()">Importer dans Tagués</button>
+          <button class="btn btn-gray" style="width:100%;justify-content:center;color:#ff3b30;border-color:#ff3b30" onclick="clearGrid()">Vider la grille</button>
           <div class="note-box" style="font-size:0.75rem">
-            <strong>Glisser &amp; déposer :</strong> Dépose des photos directement sur les cellules de la grille. Fais glisser une cellule sur une autre pour les permuter.
+            Clique sur un post pour le visualiser. Glisse les cellules pour les réorganiser.
           </div>
         </div>
       </div>
@@ -1147,10 +1520,11 @@ Paris, France 🇫🇷
             </div>
             <div class="ig-biotext" id="igBioText">Créateur de contenu ✨
 Paris, France 🇫🇷
-📩 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="14777b7a607577605479757d783a777b79">[email&#160;protected]</a></div>
+📩 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c8aba7a6bca9abbc88a5a9a1a4e6aba7a5">[email&#160;protected]</a></div>
+            <div id="igBioLink" style="display:none;padding:0 0 4px;font-size:0.72rem;color:#0095f6;font-weight:600;cursor:pointer"></div>
 
             <div class="ig-action-row">
-              <button class="ig-follow-btn">Suivre</button>
+              <button class="ig-msg-btn" style="flex:2" onclick="scrollToSidebar()">Modifier le profil</button>
               <button class="ig-msg-btn">Message</button>
               <button class="ig-more-btn">▾</button>
             </div>
@@ -1161,13 +1535,23 @@ Paris, France 🇫🇷
 
           <!-- Tabs -->
           <div class="ig-tabs">
-            <div class="ig-tab-item on"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="11" y="1" width="6" height="6" rx="1"/><rect x="1" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg></div>
-            <div class="ig-tab-item"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="4,2 16,9 4,16"/></svg></div>
-            <div class="ig-tab-item"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="16" height="16" rx="3"/><path d="M5 5l3 3-3 3"/><line x1="10" y1="11" x2="13" y2="11"/></svg></div>
+            <div class="ig-tab-item on" onclick="switchIgTab('posts',this)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="11" y="1" width="6" height="6" rx="1"/><rect x="1" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg></div>
+            <div class="ig-tab-item" onclick="switchIgTab('reels',this)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="4,2 16,9 4,16"/></svg></div>
+            <div class="ig-tab-item" onclick="switchIgTab('tagged',this)"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="16" height="16" rx="3"/><path d="M5 5l3 3-3 3"/><line x1="10" y1="11" x2="13" y2="11"/></svg></div>
           </div>
 
-          <!-- Photo grid -->
-          <div class="ig-photo-grid" id="igGrid"></div>
+          <!-- Posts grid -->
+          <div class="ig-grid-container active-tab" id="igTabPosts">
+            <div class="ig-photo-grid" id="igGrid"></div>
+          </div>
+          <!-- Reels grid -->
+          <div class="ig-grid-container" id="igTabReels">
+            <div class="ig-photo-grid" id="igReelsGrid"></div>
+          </div>
+          <!-- Tagged grid -->
+          <div class="ig-grid-container" id="igTabTagged">
+            <div class="ig-photo-grid" id="igTaggedGrid"></div>
+          </div>
 
           <!-- Bottom nav -->
           <div class="ig-bottom-nav">
@@ -1185,6 +1569,180 @@ Paris, France 🇫🇷
 </div>
 </div>
 
+<!-- ─── POST EDITOR MODAL ─────────────── -->
+<div class="modal-overlay" id="postEditorOverlay" onclick="closePostEditor(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="postEditorTitle">Nouveau post</span>
+      <button class="modal-close" onclick="closePostEditor()">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Photos -->
+      <div class="field">
+        <label>Photos du carrousel</label>
+        <div class="editor-photos-strip" id="editorPhotosStrip">
+          <div class="editor-photo-add" onclick="triggerEditorPhoto()" title="Ajouter">+</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-gray btn-sm" onclick="triggerEditorPhoto()">Depuis un fichier</button>
+          <button class="btn btn-gray btn-sm" id="editorLibToggleBtn" onclick="toggleEditorLibPicker()">+ Biblioth&egrave;que</button>
+        </div>
+        <div id="editorLibPicker" style="display:none;margin-top:10px;background:var(--surface2);border-radius:12px;padding:12px;border:0.5px solid var(--border2)">
+          <div style="font-size:.72rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">S&eacute;lectionner depuis la biblioth&egrave;que</div>
+          <div id="editorLibGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:190px;overflow-y:auto"></div>
+          <div id="editorLibEmpty" style="font-size:.78rem;color:var(--text3);text-align:center;padding:16px 0;display:none">La biblioth&egrave;que est vide</div>
+        </div>
+        <div style="font-size:.72rem;color:var(--text2);margin-top:6px">Clique pour couverture &middot; Survole pour supprimer</div>
+      </div>
+      <!-- Type -->
+      <div class="field">
+        <label>Type</label>
+        <div class="type-chips">
+          <button class="type-chip active" onclick="setPostType('post',this)">Post</button>
+          <button class="type-chip" onclick="setPostType('reel',this)">Reel</button>
+        </div>
+      </div>
+      <!-- Description -->
+      <div class="field">
+        <label>Description</label>
+        <textarea id="editorDesc" placeholder="Écris ta légende ici…" style="min-height:80px"></textarea>
+      </div>
+      <!-- Location + Date -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field">
+          <label>Localisation</label>
+          <input type="text" id="editorLocation" placeholder="Paris, France">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="text" id="editorDate" placeholder="il y a 2 jours">
+        </div>
+      </div>
+      <!-- Likes + Views -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field">
+          <label>Likes</label>
+          <input type="number" id="editorLikes" value="0" min="0">
+        </div>
+        <div class="field" id="editorViewsField" style="display:none">
+          <label>Vues</label>
+          <input type="number" id="editorViews" value="0" min="0">
+        </div>
+      </div>
+      <!-- Commentaires -->
+      <div class="field">
+        <label>Commentaires</label>
+        <div id="editorCommentsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="editorCommentUser" placeholder="@utilisateur" style="width:120px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:0.82rem;outline:none">
+          <input type="text" id="editorCommentText" placeholder="Commentaire…" style="flex:1;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:0.82rem;outline:none">
+          <button class="btn btn-gray btn-sm" onclick="addEditorComment()">+</button>
+        </div>
+      </div>
+      <!-- Save -->
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button class="btn btn-blue" style="flex:1;justify-content:center" onclick="savePost()">Enregistrer dans la grille</button>
+        <button class="btn btn-gray" onclick="closePostEditor()">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── POST VIEWER MODAL ────────────── -->
+<div class="post-viewer-overlay" id="postViewerOverlay" onclick="closePostViewer(event)">
+  <div class="post-viewer-card" onclick="event.stopPropagation()">
+    <div class="pv-top">
+      <div class="pv-ava" id="pvAva"></div>
+      <div>
+        <div class="pv-username" id="pvUsername"></div>
+        <div class="pv-location" id="pvLocation"></div>
+      </div>
+      <button class="pv-close" onclick="closePostViewer()">✕</button>
+    </div>
+    <!-- Carousel -->
+    <div class="pv-carousel" id="pvCarousel">
+      <div class="pv-carousel-track" id="pvTrack"></div>
+      <button class="pv-arrow left" id="pvArrowL" onclick="pvSlide(-1)" style="display:none">‹</button>
+      <button class="pv-arrow right" id="pvArrowR" onclick="pvSlide(1)" style="display:none">›</button>
+      <div class="pv-dots" id="pvDots"></div>
+    </div>
+    <!-- Actions -->
+    <div class="pv-actions">
+      <button class="pv-act-btn" id="pvLikeBtn" onclick="pvToggleLike()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button class="pv-act-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <button class="pv-act-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+      <button class="pv-save-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      </button>
+    </div>
+    <div class="pv-likes" id="pvLikes"></div>
+    <div class="pv-views" id="pvViews" style="display:none"></div>
+    <div class="pv-desc" id="pvDesc"></div>
+    <div class="pv-comments" id="pvComments"></div>
+    <div class="pv-date" id="pvDate"></div>
+    <div class="pv-add-comment">
+      <input type="text" id="pvCommentInput" placeholder="Ajouter un commentaire…">
+      <button onclick="pvAddComment()">Publier</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── STORY VIEWER ─────────────────── -->
+<div class="story-overlay" id="storyOverlay">
+  <div style="position:relative">
+    <div class="story-phone" id="storyPhone">
+      <div class="story-bg" id="storyBg">
+        <img id="storyBgImg" src="" alt="" style="display:none">
+        <div id="storyBgColor" style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2)"></div>
+      </div>
+      <!-- Progress bars -->
+      <div class="story-progress-bar" id="storyProgBars"></div>
+      <!-- Top bar -->
+      <div class="story-top-bar">
+        <div class="story-ava" id="storyAva">
+          <div class="story-ava-ph" id="storyAvaPh">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" fill="#888"/><path d="M2 18c0-4.4 3.6-8 8-8s8 3.6 8 8" fill="#888"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="story-username" id="storyUsername"></div>
+          <div class="story-time" id="storyTimeLabel">Maintenant</div>
+        </div>
+        <button class="story-close" onclick="closeStory()">✕</button>
+      </div>
+      <!-- Stickers -->
+      <div class="story-stickers" id="storyStickers"></div>
+      <!-- Nav zones -->
+      <div class="story-nav-zone" style="width:100%">
+        <div class="story-nav-prev" onclick="storyNav(-1)"></div>
+        <div class="story-nav-next" onclick="storyNav(1)"></div>
+      </div>
+      <!-- Bottom -->
+      <div class="story-bottom">
+        <input class="story-reply-input" placeholder="Répondre à la story…">
+      </div>
+    </div>
+    <!-- Sticker editor -->
+    <div class="story-editor-panel" style="width:340px;border-radius:0 0 20px 20px">
+      <div style="font-size:0.72rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Ajouter des stickers</div>
+      <div class="sticker-palette">
+        <button class="sticker-palette-btn" onclick="addSticker('text')">Aa Texte</button>
+        <button class="sticker-palette-btn" onclick="addSticker('emoji')">Emoji</button>
+        <button class="sticker-palette-btn" onclick="addSticker('location')">📍 Lieu</button>
+        <button class="sticker-palette-btn" onclick="addSticker('countdown')">⏱ Compte à rebours</button>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text2)">Clique sur un sticker pour le modifier · Glisse pour le déplacer</div>
+      <button class="btn btn-gray btn-sm" onclick="closeStory()" style="align-self:flex-start">Fermer la story</button>
+    </div>
+  </div>
+</div>
+
 <!-- Progress overlay -->
 <div class="prog-overlay" id="progOverlay">
   <div class="prog-title" id="progTitle">Export en cours…</div>
@@ -1197,13 +1755,15 @@ Paris, France 🇫🇷
 <input type="file" id="avaFileInput" accept="image/*">
 <input type="file" id="gridFileInput" accept="image/*" multiple>
 <input type="file" id="cropFileInput" accept="image/*">
+<input type="file" id="editorPhotoInput" accept="image/*" multiple>
+<input type="file" id="taggedFileInput" accept="image/*" multiple>
 
 <!-- Export canvases -->
 <canvas class="xc" id="xc0"></canvas>
 <canvas class="xc" id="xc1"></canvas>
 <canvas class="xc" id="xc2"></canvas>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ═══════════════════════════════════
    APP SHELL
 ═══════════════════════════════════ */
@@ -1375,331 +1935,473 @@ window.addEventListener('resize', () => { if (triImg) triUpdate(); });
    SIMULATOR
 ═══════════════════════════════════ */
 const sim = {
-  avatar: null,
-  verified: false,
-  privateAcc: false,
-  storyRing: false,
+  avatar: null, verified: false, privateAcc: false, storyRing: false,
   highlights: [],
-  grid: new Array(12).fill(null)
+  grid:       new Array(12).fill(null),
+  reelsGrid:  new Array(12).fill(null),
+  taggedGrid: new Array(12).fill(null),
+  activeTab: 'posts'
 };
+let draggingCellIdx = null, pendingCellIdx = null, pendingHlIdx = null;
 
-let draggingCellIdx = null;
-let pendingCellIdx  = null;
-let pendingHlIdx    = null;
-
-function syncProfile() {
-  const name     = document.getElementById('simName').value || 'Votre Nom';
-  const username = document.getElementById('simUsername').value.replace('@','') || 'votre_compte';
-  const bio      = document.getElementById('simBio').value;
-  const posts    = document.getElementById('simPosts').value;
-  const foll     = document.getElementById('simFollowers').value;
-  const folling  = document.getElementById('simFollowing').value;
-
-  document.getElementById('igNavName').textContent    = username;
-  document.getElementById('igNameTxt').textContent    = name;
-  document.getElementById('igBioText').textContent    = bio;
-  document.getElementById('igPostsN').textContent     = posts;
-  document.getElementById('igFollN').textContent      = foll;
-  document.getElementById('igFollingN').textContent   = folling;
-  document.getElementById('igLockIcon').style.display = sim.privateAcc ? 'inline' : 'none';
-  document.getElementById('igVerifiedBadge').style.display = sim.verified ? 'inline-flex' : 'none';
+function makePost(photos, overrides) {
+  return Object.assign({ type:'post', photos, coverIdx:0, description:'', likes:0, comments:[], location:'', date:'il y a un instant', views:0 }, overrides||{});
 }
 
-function toggleOpt(opt, btn) {
-  btn.classList.toggle('on');
-  const on = btn.classList.contains('on');
-  if (opt === 'verified') sim.verified = on;
-  if (opt === 'private')  sim.privateAcc = on;
-  if (opt === 'ring') { sim.storyRing = on; renderHighlights(); }
+/* ── PROFILE ── */
+function syncProfile() {
+  const name    = document.getElementById('simName').value||'Votre Nom';
+  const uname   = document.getElementById('simUsername').value.replace('@','')||'votre_compte';
+  const bio     = document.getElementById('simBio').value;
+  const link    = (document.getElementById('simLink')||{value:''}).value;
+  const posts   = document.getElementById('simPosts').value;
+  const foll    = document.getElementById('simFollowers').value;
+  const folling = document.getElementById('simFollowing').value;
+  document.getElementById('igNavName').textContent  = uname;
+  document.getElementById('igNameTxt').textContent  = name;
+  document.getElementById('igBioText').textContent  = bio;
+  document.getElementById('igPostsN').textContent   = posts||sim.grid.filter(Boolean).length;
+  document.getElementById('igFollN').textContent    = foll;
+  document.getElementById('igFollingN').textContent = folling;
+  document.getElementById('igLockIcon').style.display = sim.privateAcc?'inline':'none';
+  document.getElementById('igVerifiedBadge').style.display = sim.verified?'inline-flex':'none';
+  const linkEl = document.getElementById('igBioLink');
+  if(link){ linkEl.style.display=''; linkEl.textContent=link.replace(/^https?:\/\//,''); linkEl.onclick=()=>window.open(link.startsWith('http')?link:'https://'+link,'_blank'); }
+  else linkEl.style.display='none';
+}
+function scrollToSidebar(){ document.querySelector('.sim-sidebar').scrollIntoView({behavior:'smooth',block:'start'}); }
+function toggleOpt(opt,btn){
+  btn.classList.toggle('on'); const on=btn.classList.contains('on');
+  if(opt==='verified') sim.verified=on;
+  if(opt==='private')  sim.privateAcc=on;
+  if(opt==='ring'){sim.storyRing=on;renderHighlights();}
   syncProfile();
 }
 
+/* ── IG TAB ── */
+function switchIgTab(tab,btn){
+  sim.activeTab=tab;
+  document.querySelectorAll('.ig-tab-item').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  document.querySelectorAll('.ig-grid-container').forEach(c=>c.classList.remove('active-tab'));
+  document.getElementById('igTab'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.add('active-tab');
+}
+
+/* ── TRI → SIM ── */
+function sendTriToSim(i){
+  if(!triCrop[i]){showToast('Lance d\'abord le triptyque !');return;}
+  const{sx,sy,sw,sh}=triCrop[i];
+  const c=document.createElement('canvas'); c.width=Math.round(sw); c.height=Math.round(sh);
+  c.getContext('2d').drawImage(triImg,sx,sy,sw,sh,0,0,c.width,c.height);
+  const slot=sim.grid.findIndex(x=>!x); sim.grid[slot!==-1?slot:0]=makePost([c.toDataURL('image/png')]);
+  renderGrid(); showToast('Photo '+(i+1)+' du triptyque envoyee !');
+}
+function sendAllTriToSim(){ for(let i=0;i<3;i++) sendTriToSim(i); showToast('3 photos envoyees !'); }
+
 /* ── HIGHLIGHTS ── */
-function addHighlight() {
-  sim.highlights.push({ name: 'Story ' + (sim.highlights.length + 1), img: null });
-  renderHlList();
-  renderHighlights();
-}
-
-function removeHighlight(idx) {
-  sim.highlights.splice(idx, 1);
-  renderHlList();
-  renderHighlights();
-}
-
-function renameHighlight(idx, val) {
-  sim.highlights[idx].name = val || ('Story ' + (idx+1));
-  renderHighlights();
-}
-
-function triggerHlPhoto(idx) {
-  pendingHlIdx = idx;
-  const fi = document.getElementById('gridFileInput');
-  fi.removeAttribute('multiple'); fi.value = '';
-  fi.onchange = () => {
-    if (fi.files[0]) {
-      const r = new FileReader();
-      r.onload = e => {
-        sim.highlights[pendingHlIdx].img = e.target.result;
-        renderHlList();
-        renderHighlights();
-      };
-      r.readAsDataURL(fi.files[0]);
-    }
-  };
+function addHighlight(){ sim.highlights.push({name:'Story '+(sim.highlights.length+1),img:null,stickers:[]}); renderHlList(); renderHighlights(); }
+function removeHighlight(idx){ sim.highlights.splice(idx,1); renderHlList(); renderHighlights(); }
+function renameHighlight(idx,val){ sim.highlights[idx].name=val||('Story '+(idx+1)); renderHighlights(); }
+function triggerHlPhoto(idx){
+  pendingHlIdx=idx;
+  const fi=document.getElementById('gridFileInput'); fi.removeAttribute('multiple'); fi.value='';
+  fi.onchange=()=>{ if(fi.files[0]){ const r=new FileReader(); r.onload=e=>{sim.highlights[pendingHlIdx].img=e.target.result;renderHlList();renderHighlights();}; r.readAsDataURL(fi.files[0]); } };
   fi.click();
 }
-
-function renderHlList() {
-  const list = document.getElementById('hlList');
-  const empty = document.getElementById('hlEmpty');
-  if (sim.highlights.length === 0) {
-    list.innerHTML = '';
-    list.appendChild(empty);
-    empty.style.display = '';
-    return;
-  }
-  empty.style.display = 'none';
-  list.innerHTML = '';
-  sim.highlights.forEach((hl, i) => {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:10px;';
-
-    // Thumb
-    const thumb = document.createElement('div');
-    thumb.style.cssText = 'width:36px;height:36px;border-radius:50%;background:#e5e5ea;flex-shrink:0;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,0.08);';
-    thumb.title = 'Changer la photo';
-    if (hl.img) {
-      const im = document.createElement('img');
-      im.src = hl.img; im.style.cssText='width:100%;height:100%;object-fit:cover;';
-      thumb.appendChild(im);
-    } else {
-      thumb.innerHTML = `<svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="1" y="3" width="18" height="14" rx="3" stroke="#aeaeb2" stroke-width="1.5"/><circle cx="7" cy="9" r="2" stroke="#aeaeb2" stroke-width="1.5"/><path d="M1 16l5-5 4 4 3-3 6 5" stroke="#aeaeb2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    }
-    thumb.onclick = () => triggerHlPhoto(i);
-
-    // Name input
-    const inp = document.createElement('input');
-    inp.type = 'text'; inp.value = hl.name;
-    inp.style.cssText = 'flex:1;background:#f2f2f7;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:0.82rem;color:#1d1d1f;outline:none;';
-    inp.oninput = () => renameHighlight(i, inp.value);
-    inp.onfocus = e => e.target.style.borderColor='#0071e3';
-    inp.onblur  = e => e.target.style.borderColor='rgba(0,0,0,0.12)';
-
-    // Delete
-    const del = document.createElement('button');
-    del.style.cssText = 'background:none;border:none;cursor:pointer;color:#aeaeb2;font-size:1rem;padding:0 2px;line-height:1;flex-shrink:0;';
-    del.innerHTML = '&times;';
-    del.onclick = () => removeHighlight(i);
-
-    row.appendChild(thumb);
-    row.appendChild(inp);
-    row.appendChild(del);
+function renderHlList(){
+  const list=document.getElementById('hlList'), empty=document.getElementById('hlEmpty');
+  if(sim.highlights.length===0){list.innerHTML='';list.appendChild(empty);empty.style.display='';return;}
+  empty.style.display='none'; list.innerHTML='';
+  sim.highlights.forEach((hl,i)=>{
+    const row=document.createElement('div'); row.style.cssText='display:flex;align-items:center;gap:10px;';
+    const thumb=document.createElement('div');
+    thumb.style.cssText='width:36px;height:36px;border-radius:50%;background:#e5e5ea;flex-shrink:0;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,0,0,0.08);';
+    if(hl.img){const im=document.createElement('img');im.src=hl.img;im.style.cssText='width:100%;height:100%;object-fit:cover;';thumb.appendChild(im);}
+    else thumb.innerHTML='<svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="1" y="3" width="18" height="14" rx="3" stroke="#aeaeb2" stroke-width="1.5"/></svg>';
+    thumb.onclick=()=>triggerHlPhoto(i);
+    const inp=document.createElement('input'); inp.type='text'; inp.value=hl.name;
+    inp.style.cssText='flex:1;background:#f2f2f7;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:0.82rem;color:#1d1d1f;outline:none;';
+    inp.oninput=()=>renameHighlight(i,inp.value);
+    inp.onfocus=e=>e.target.style.borderColor='#0071e3'; inp.onblur=e=>e.target.style.borderColor='rgba(0,0,0,0.12)';
+    const viewBtn=document.createElement('button');
+    viewBtn.style.cssText='background:none;border:0.5px solid #c7c7cc;border-radius:6px;cursor:pointer;color:#0095f6;font-size:0.68rem;padding:3px 8px;font-family:inherit;white-space:nowrap;';
+    viewBtn.textContent='Voir'; viewBtn.onclick=()=>openStoryViewer(i);
+    const del=document.createElement('button');
+    del.style.cssText='background:none;border:none;cursor:pointer;color:#aeaeb2;font-size:1rem;padding:0 2px;line-height:1;flex-shrink:0;';
+    del.innerHTML='&times;'; del.onclick=()=>removeHighlight(i);
+    row.appendChild(thumb);row.appendChild(inp);row.appendChild(viewBtn);row.appendChild(del);
     list.appendChild(row);
   });
   list.appendChild(empty);
 }
-
-function renderHighlights() {
-  const row = document.getElementById('igHlRow');
-  row.innerHTML = '';
-  if (sim.highlights.length === 0) { row.style.display = 'none'; return; }
-  row.style.display = '';
-
-  sim.highlights.forEach(hl => {
-    const item = document.createElement('div');
-    item.className = 'ig-hl-item';
-
-    const circle = document.createElement('div');
-    if (sim.storyRing) {
-      circle.className = 'ig-hl-circle has-ring';
-      const inner = document.createElement('div');
-      inner.className = 'hl-circle-inner';
-      if (hl.img) {
-        const im = document.createElement('img'); im.src = hl.img;
-        inner.appendChild(im);
-      } else {
-        inner.style.background = '#f0f0f0';
-      }
+function renderHighlights(){
+  const row=document.getElementById('igHlRow'); row.innerHTML='';
+  if(sim.highlights.length===0){row.style.display='none';return;} row.style.display='';
+  sim.highlights.forEach((hl,i)=>{
+    const item=document.createElement('div'); item.className='ig-hl-item'; item.style.cursor='pointer';
+    item.onclick=()=>openStoryViewer(i);
+    const circle=document.createElement('div');
+    if(sim.storyRing){
+      circle.className='ig-hl-circle has-ring';
+      const inner=document.createElement('div'); inner.className='hl-circle-inner';
+      if(hl.img){const im=document.createElement('img');im.src=hl.img;inner.appendChild(im);}else inner.style.background='#f0f0f0';
       circle.appendChild(inner);
     } else {
-      circle.className = 'ig-hl-circle';
-      if (hl.img) {
-        const im = document.createElement('img'); im.src = hl.img;
-        circle.appendChild(im);
-      }
+      circle.className='ig-hl-circle';
+      if(hl.img){const im=document.createElement('img');im.src=hl.img;circle.appendChild(im);}
     }
-
-    const lbl = document.createElement('div');
-    lbl.className = 'ig-hl-lbl';
-    lbl.textContent = hl.name;
-
-    item.appendChild(circle);
-    item.appendChild(lbl);
-    row.appendChild(item);
+    const lbl=document.createElement('div'); lbl.className='ig-hl-lbl'; lbl.textContent=hl.name;
+    item.appendChild(circle); item.appendChild(lbl); row.appendChild(item);
   });
 }
 
-/* Avatar */
-function triggerAvatar() {
-  const fi = document.getElementById('avaFileInput');
-  fi.value = ''; fi.onchange = () => { if (fi.files[0]) loadAvatar(fi.files[0]); }; fi.click();
-}
-
-function loadAvatar(file) {
-  const r = new FileReader();
-  r.onload = e => { sim.avatar = e.target.result; updateAvatarUI(); };
-  r.readAsDataURL(file);
-}
-
-function updateAvatarUI() {
-  const inner = document.getElementById('igAvaInner');
-  const ph    = document.getElementById('igAvaPlaceholder');
-  const btn   = document.getElementById('avaBtn');
-
-  if (sim.avatar) {
-    ph.style.display = 'none';
-    let img = inner.querySelector('img');
-    if (!img) { img = document.createElement('img'); inner.appendChild(img); }
-    img.src = sim.avatar;
-    btn.innerHTML = `<img src="${sim.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"><div class="ava-hover">Changer<br>la photo</div>`;
+/* ── AVATAR ── */
+function triggerAvatar(){ const fi=document.getElementById('avaFileInput'); fi.value=''; fi.onchange=()=>{if(fi.files[0])loadAvatar(fi.files[0]);}; fi.click(); }
+function loadAvatar(file){ const r=new FileReader(); r.onload=e=>{sim.avatar=e.target.result;updateAvatarUI();}; r.readAsDataURL(file); }
+function updateAvatarUI(){
+  const inner=document.getElementById('igAvaInner'),ph=document.getElementById('igAvaPlaceholder'),btn=document.getElementById('avaBtn');
+  if(sim.avatar){
+    ph.style.display='none'; let img=inner.querySelector('img'); if(!img){img=document.createElement('img');inner.appendChild(img);} img.src=sim.avatar;
+    btn.innerHTML='<img src="'+sim.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"><div class="ava-hover">Changer<br>la photo</div>';
   } else {
-    ph.style.display = '';
-    inner.querySelectorAll('img').forEach(i=>i.remove());
-    btn.innerHTML = `<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="10" r="5.5" fill="#c7c7cc"/><path d="M3 28c0-6.1 4.9-11 11-11s11 4.9 11 11" fill="#c7c7cc"/></svg><div class="ava-hover">Changer<br>la photo</div>`;
+    ph.style.display=''; inner.querySelectorAll('img').forEach(i=>i.remove());
+    btn.innerHTML='<svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="10" r="5.5" fill="#c7c7cc"/><path d="M3 28c0-6.1 4.9-11 11-11s11 4.9 11 11" fill="#c7c7cc"/></svg><div class="ava-hover">Changer<br>la photo</div>';
   }
 }
 
-/* Grid */
-function renderGrid() {
-  const grid = document.getElementById('igGrid');
-  grid.innerHTML = '';
+/* ── GRID RENDER ── */
+function renderGrid(){
+  renderGridInto(document.getElementById('igGrid'),sim.grid,false);
+  renderGridInto(document.getElementById('igReelsGrid'),sim.reelsGrid,true);
+  renderGridInto(document.getElementById('igTaggedGrid'),sim.taggedGrid,false);
+  const count=sim.grid.filter(Boolean).length;
+  document.getElementById('igPostsN').textContent=document.getElementById('simPosts').value||count;
+}
 
-  for (let i = 0; i < 12; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'ig-cell';
-    cell.dataset.idx = i;
-
-    const img = sim.grid[i];
-    if (img) {
-      cell.draggable = true;
-      const image = document.createElement('img');
-      image.src = img;
+function renderGridInto(gridEl,dataArr,isReels){
+  if(!gridEl)return; gridEl.innerHTML='';
+  for(let i=0;i<12;i++){
+    const cell=document.createElement('div'); cell.className='ig-cell'; cell.dataset.idx=i;
+    const post=dataArr[i];
+    if(post){
+      const coverUrl=post.photos&&post.photos.length>0?post.photos[post.coverIdx||0]:post;
+      cell.draggable=true;
+      const image=document.createElement('img'); image.src=typeof coverUrl==='string'?coverUrl:coverUrl;
       cell.appendChild(image);
-
-      const overlay = document.createElement('div');
-      overlay.className = 'ig-cell-actions';
-      overlay.innerHTML = `
-        <button class="cell-act-btn" title="Changer" onclick="event.stopPropagation();openCellPicker(${i})">✏</button>
-        <button class="cell-act-btn" title="Supprimer" onclick="event.stopPropagation();removeCell(${i})">✕</button>`;
+      if(post.photos&&post.photos.length>1){
+        const ind=document.createElement('div');
+        ind.style.cssText='position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.55);border-radius:4px;padding:2px 5px;';
+        ind.innerHTML='<svg width="10" height="10" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="4" height="4" rx="1" stroke="white" stroke-width="1.2"/><rect x="7" y="1" width="4" height="4" rx="1" stroke="white" stroke-width="1.2"/><rect x="1" y="7" width="4" height="4" rx="1" stroke="white" stroke-width="1.2"/><rect x="7" y="7" width="4" height="4" rx="1" stroke="white" stroke-width="1.2"/></svg>';
+        cell.appendChild(ind);
+      }
+      if(isReels||post.type==='reel'){
+        const rb=document.createElement('div'); rb.className='ig-reel-badge';
+        rb.innerHTML='<svg width="8" height="10" viewBox="0 0 10 12" fill="white"><polygon points="1,1 9,6 1,11"/></svg>';
+        cell.appendChild(rb);
+      }
+      const overlay=document.createElement('div'); overlay.className='ig-cell-actions';
+      const tabKey=isReels?'reels':'posts';
+      overlay.innerHTML='<button class="cell-act-btn" onclick="event.stopPropagation();openPostViewer('+i+',\''+tabKey+'\')">&#128065;</button>'
+        +'<button class="cell-act-btn" onclick="event.stopPropagation();editPost('+i+',\''+tabKey+'\')">&#9998;</button>'
+        +'<button class="cell-act-btn" onclick="event.stopPropagation();saveCellToLib('+i+',\''+tabKey+'\')" style="color:#34c759;font-size:.6rem;font-weight:600">Lib</button>'
+        +'<button class="cell-act-btn" onclick="event.stopPropagation();removeCell('+i+',\''+tabKey+'\')">&#10005;</button>';
       cell.appendChild(overlay);
-
-      cell.addEventListener('dragstart', e => {
-        draggingCellIdx = i;
-        cell.classList.add('dragging');
-        e.dataTransfer.setData('text/plain', String(i));
-        e.dataTransfer.effectAllowed = 'move';
-      });
-      cell.addEventListener('dragend', () => {
-        cell.classList.remove('dragging');
-        draggingCellIdx = null;
-      });
+      cell.addEventListener('click',()=>openPostViewer(i,tabKey));
+      cell.addEventListener('dragstart',e=>{draggingCellIdx=i;cell.classList.add('dragging');e.dataTransfer.setData('text/plain',String(i));e.dataTransfer.effectAllowed='move';});
+      cell.addEventListener('dragend',()=>{cell.classList.remove('dragging');draggingCellIdx=null;});
     } else {
-      const empty = document.createElement('div');
-      empty.className = 'ig-cell-empty';
-      empty.innerHTML = `<div class="ig-cell-plus">+</div><div class="ig-cell-hint">Glisser ou cliquer</div>`;
+      const empty=document.createElement('div'); empty.className='ig-cell-empty';
+      empty.innerHTML='<div class="ig-cell-plus">+</div><div class="ig-cell-hint">Cliquer</div>';
       cell.appendChild(empty);
-      cell.addEventListener('click', () => openCellPicker(i));
+      cell.addEventListener('click',()=>openPostEditor(i,isReels?'reel':'post'));
     }
-
-    cell.addEventListener('dragover', e => { e.preventDefault(); cell.classList.add('drag-over'); e.dataTransfer.dropEffect = 'move'; });
-    cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
-    cell.addEventListener('drop', e => handleCellDrop(e, i));
-    grid.appendChild(cell);
-  }
-
-  // Auto-count posts
-  const count = sim.grid.filter(Boolean).length;
-  document.getElementById('igPostsN').textContent = document.getElementById('simPosts').value || count;
-}
-
-function handleCellDrop(e, targetIdx) {
-  e.preventDefault(); e.stopPropagation();
-  document.querySelectorAll('.ig-cell').forEach(c => c.classList.remove('drag-over'));
-
-  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-    const file = e.dataTransfer.files[0];
-    if (!file.type.startsWith('image/')) return;
-    loadCellImage(file, targetIdx);
-  } else if (draggingCellIdx !== null && draggingCellIdx !== targetIdx) {
-    [sim.grid[draggingCellIdx], sim.grid[targetIdx]] =
-    [sim.grid[targetIdx], sim.grid[draggingCellIdx]];
-    draggingCellIdx = null;
-    renderGrid();
+    cell.addEventListener('dragover',e=>{e.preventDefault();cell.classList.add('drag-over');e.dataTransfer.dropEffect='move';});
+    cell.addEventListener('dragleave',()=>cell.classList.remove('drag-over'));
+    cell.addEventListener('drop',e=>handleCellDrop(e,i,dataArr));
+    gridEl.appendChild(cell);
   }
 }
 
-function loadCellImage(file, idx) {
-  const r = new FileReader();
-  r.onload = e => {
-    sim.grid[idx] = e.target.result;
-    renderGrid();
-    syncProfile();
-  };
-  r.readAsDataURL(file);
+function handleCellDrop(e,targetIdx,dataArr){
+  e.preventDefault();e.stopPropagation();
+  document.querySelectorAll('.ig-cell').forEach(c=>c.classList.remove('drag-over'));
+  if(e.dataTransfer.files&&e.dataTransfer.files.length>0){
+    const file=e.dataTransfer.files[0]; if(!file.type.startsWith('image/'))return;
+    const r=new FileReader(); r.onload=ev=>{dataArr[targetIdx]=makePost([ev.target.result]);renderGrid();}; r.readAsDataURL(file);
+  } else if(draggingCellIdx!==null&&draggingCellIdx!==targetIdx){
+    [dataArr[draggingCellIdx],dataArr[targetIdx]]=[dataArr[targetIdx],dataArr[draggingCellIdx]];
+    draggingCellIdx=null; renderGrid();
+  }
 }
 
-function removeCell(idx) { sim.grid[idx] = null; renderGrid(); syncProfile(); }
-function clearGrid() { sim.grid = new Array(12).fill(null); renderGrid(); syncProfile(); }
+function loadCellImage(file,idx){ const r=new FileReader(); r.onload=e=>{sim.grid[idx]=makePost([e.target.result]);renderGrid();syncProfile();}; r.readAsDataURL(file); }
+function removeCell(idx,tab){ const arr=tab==='reels'?sim.reelsGrid:tab==='tagged'?sim.taggedGrid:sim.grid; arr[idx]=null;renderGrid();syncProfile(); }
+function clearGrid(){ sim.grid=new Array(12).fill(null);renderGrid();syncProfile(); }
+function openCellPicker(idx){ pendingCellIdx=idx; const fi=document.getElementById('gridFileInput'); fi.removeAttribute('multiple');fi.value=''; fi.onchange=()=>{if(fi.files[0])loadCellImage(fi.files[0],pendingCellIdx);}; fi.click(); }
 
-function openCellPicker(idx) {
-  pendingCellIdx = idx;
-  const fi = document.getElementById('gridFileInput');
-  fi.removeAttribute('multiple'); fi.value = '';
-  fi.onchange = () => { if (fi.files[0]) loadCellImage(fi.files[0], pendingCellIdx); };
+function triggerGridImport(){
+  const fi=document.getElementById('gridFileInput'); fi.setAttribute('multiple','');fi.value='';
+  fi.onchange=()=>{
+    const files=Array.from(fi.files); let nextSlot=sim.grid.findIndex(x=>!x); if(nextSlot===-1)nextSlot=0;
+    files.forEach((file,i)=>{const slot=(nextSlot+i)%12;loadCellImage(file,slot);});
+  }; fi.click();
+}
+
+function triggerTaggedImport(){
+  const fi=document.getElementById('taggedFileInput'); fi.setAttribute('multiple','');fi.value='';
+  fi.onchange=()=>{
+    const files=Array.from(fi.files); let nextSlot=sim.taggedGrid.findIndex(x=>!x); if(nextSlot===-1)nextSlot=0;
+    files.forEach((file,i)=>{const r=new FileReader();r.onload=ev=>{sim.taggedGrid[(nextSlot+i)%12]=makePost([ev.target.result]);renderGrid();};r.readAsDataURL(file);});
+  }; fi.click();
+}
+
+function phoneDragOver(e){ if(e.dataTransfer.types.includes('Files')){e.preventDefault();document.getElementById('phoneDropHint').classList.add('show');} }
+function phoneDragLeave(e){ if(!document.getElementById('iphoneWrap').contains(e.relatedTarget))document.getElementById('phoneDropHint').classList.remove('show'); }
+function phoneDrop(e){
+  e.preventDefault(); document.getElementById('phoneDropHint').classList.remove('show');
+  if(e.dataTransfer.files&&e.dataTransfer.files.length>0){ Array.from(e.dataTransfer.files).forEach(file=>{if(!file.type.startsWith('image/'))return;const slot=sim.grid.findIndex(x=>!x);if(slot!==-1)loadCellImage(file,slot);}); }
+}
+
+/* ═══════════════════════════════════
+   POST EDITOR
+═══════════════════════════════════ */
+let editorState={photos:[],type:'post',coverIdx:0,editingIdx:null,editingTab:'posts'};
+
+function openPostEditor(idx,forcedType){
+  editorState={photos:[],type:forcedType||'post',coverIdx:0,editingIdx:idx,editingTab:sim.activeTab};
+  document.getElementById('postEditorTitle').textContent=idx!==null?'Modifier le post':'Nouveau post';
+  document.getElementById('editorDesc').value='';
+  document.getElementById('editorLocation').value='';
+  document.getElementById('editorDate').value='il y a un instant';
+  document.getElementById('editorLikes').value=0;
+  document.getElementById('editorViews').value=0;
+  document.getElementById('editorCommentsList').innerHTML='';
+  if(idx!==null){
+    const arr=sim.activeTab==='reels'?sim.reelsGrid:sim.grid;
+    const post=arr[idx];
+    if(post){
+      editorState.photos=[...post.photos]; editorState.type=post.type; editorState.coverIdx=post.coverIdx||0;
+      document.getElementById('editorDesc').value=post.description;
+      document.getElementById('editorLocation').value=post.location;
+      document.getElementById('editorDate').value=post.date;
+      document.getElementById('editorLikes').value=post.likes;
+      document.getElementById('editorViews').value=post.views;
+      post.comments.forEach(c=>addEditorCommentItem(c.user,c.text));
+    }
+  }
+  setPostType(editorState.type,null);
+  renderEditorPhotos();
+  document.getElementById('postEditorOverlay').classList.add('show');
+}
+
+function closePostEditor(e){ if(e&&e.target!==document.getElementById('postEditorOverlay'))return; document.getElementById('postEditorOverlay').classList.remove('show'); }
+
+function setPostType(type,btn){
+  editorState.type=type;
+  document.querySelectorAll('.type-chip').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  else{const chips=document.querySelectorAll('.type-chip');if(type==='post')chips[0].classList.add('active');else if(chips[1])chips[1].classList.add('active');}
+  document.getElementById('editorViewsField').style.display=type==='reel'?'':'none';
+}
+
+function triggerEditorPhoto(){
+  const fi=document.getElementById('editorPhotoInput'); fi.setAttribute('multiple','');fi.value='';
+  fi.onchange=()=>{ Array.from(fi.files).forEach(file=>{const r=new FileReader();r.onload=e=>{editorState.photos.push(e.target.result);renderEditorPhotos();};r.readAsDataURL(file);}); };
   fi.click();
 }
 
-function triggerGridImport() {
-  const fi = document.getElementById('gridFileInput');
-  fi.setAttribute('multiple',''); fi.value='';
-  fi.onchange = () => {
-    const files = Array.from(fi.files);
-    let nextSlot = sim.grid.findIndex(x => !x);
-    if (nextSlot === -1) nextSlot = 0;
-    files.forEach((file, i) => {
-      const slot = (nextSlot + i) % 12;
-      loadCellImage(file, slot);
-    });
-  };
-  fi.click();
+function renderEditorPhotos(){
+  const strip=document.getElementById('editorPhotosStrip'); strip.innerHTML='';
+  editorState.photos.forEach((url,i)=>{
+    const wrap=document.createElement('div'); wrap.style.cssText='position:relative;flex-shrink:0;';
+    const img=document.createElement('img'); img.src=url;
+    img.className='editor-photo-thumb'+(i===editorState.coverIdx?' cover':'');
+    img.title='Clique pour cover'; img.onclick=()=>{editorState.coverIdx=i;renderEditorPhotos();};
+    const del=document.createElement('button');
+    del.style.cssText='position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#ff3b30;border:none;cursor:pointer;color:white;font-size:0.6rem;display:flex;align-items:center;justify-content:center;';
+    del.innerHTML='&#10005;'; del.onclick=e=>{e.stopPropagation();editorState.photos.splice(i,1);if(editorState.coverIdx>=editorState.photos.length)editorState.coverIdx=0;renderEditorPhotos();};
+    wrap.appendChild(img);wrap.appendChild(del); strip.appendChild(wrap);
+  });
+  const addBtn=document.createElement('div'); addBtn.className='editor-photo-add'; addBtn.textContent='+'; addBtn.onclick=triggerEditorPhoto;
+  strip.appendChild(addBtn);
 }
 
-/* Phone-level drag (for file drops outside cells) */
-function phoneDragOver(e) {
-  if (e.dataTransfer.types.includes('Files')) {
-    e.preventDefault();
-    document.getElementById('phoneDropHint').classList.add('show');
-  }
-}
-function phoneDragLeave(e) {
-  if (!document.getElementById('iphoneWrap').contains(e.relatedTarget)) {
-    document.getElementById('phoneDropHint').classList.remove('show');
-  }
-}
-function phoneDrop(e) {
-  e.preventDefault();
-  document.getElementById('phoneDropHint').classList.remove('show');
-  // Files dropped on phone but not on a cell → fill first empty slot
-  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-    Array.from(e.dataTransfer.files).forEach(file => {
-      if (!file.type.startsWith('image/')) return;
-      const slot = sim.grid.findIndex(x => !x);
-      if (slot !== -1) loadCellImage(file, slot);
-    });
-  }
+function addEditorComment(){
+  const user=document.getElementById('editorCommentUser').value.trim()||'@user';
+  const text=document.getElementById('editorCommentText').value.trim(); if(!text)return;
+  addEditorCommentItem(user,text);
+  document.getElementById('editorCommentUser').value=''; document.getElementById('editorCommentText').value='';
 }
 
+function addEditorCommentItem(user,text){
+  const list=document.getElementById('editorCommentsList');
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;align-items:center;gap:8px;font-size:0.78rem;background:var(--surface2);border-radius:8px;padding:6px 10px;';
+  row.innerHTML='<strong>'+user+'</strong><span style="flex:1;color:var(--text2)">'+text+'</span><button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:#aeaeb2;font-size:0.8rem;">&#10005;</button>';
+  list.appendChild(row);
+}
+
+function savePost(){
+  if(editorState.photos.length===0){showToast('Ajoute au moins une photo !');return;}
+  const comments=[];
+  document.getElementById('editorCommentsList').querySelectorAll('div').forEach(row=>{
+    const s=row.querySelectorAll('strong,span'); if(s.length>=2)comments.push({user:s[0].textContent,text:s[1].textContent});
+  });
+  const post=makePost(editorState.photos,{
+    type:editorState.type, coverIdx:editorState.coverIdx||0,
+    description:document.getElementById('editorDesc').value,
+    likes:parseInt(document.getElementById('editorLikes').value)||0,
+    views:parseInt(document.getElementById('editorViews').value)||0,
+    location:document.getElementById('editorLocation').value,
+    date:document.getElementById('editorDate').value, comments
+  });
+  const arr=editorState.type==='reel'?sim.reelsGrid:sim.grid;
+  if(editorState.editingIdx!==null){arr[editorState.editingIdx]=post;}
+  else{const slot=arr.findIndex(x=>!x);arr[slot!==-1?slot:0]=post;}
+  renderGrid();syncProfile();
+  document.getElementById('postEditorOverlay').classList.remove('show');
+  showToast('Post enregistre !');
+}
+
+function editPost(idx,tab){ sim.activeTab=tab; openPostEditor(idx,null); }
+
+/* ═══════════════════════════════════
+   POST VIEWER
+═══════════════════════════════════ */
+let pvState={post:null,slideIdx:0,liked:false};
+
+function openPostViewer(idx,tab){
+  const arr=tab==='reels'?sim.reelsGrid:tab==='tagged'?sim.taggedGrid:sim.grid;
+  const post=arr[idx]; if(!post)return;
+  pvState={post,slideIdx:0,liked:false};
+  const pvAva=document.getElementById('pvAva');
+  pvAva.innerHTML=sim.avatar?'<img src="'+sim.avatar+'">':'<div style="width:100%;height:100%;background:#e5e5ea;border-radius:50%;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" fill="#c7c7cc"/><path d="M2 18c0-4.4 3.6-8 8-8s8 3.6 8 8" fill="#c7c7cc"/></svg></div>';
+  const uname=document.getElementById('simUsername').value.replace('@','')||'votre_compte';
+  document.getElementById('pvUsername').textContent=uname;
+  document.getElementById('pvLocation').textContent=post.location;
+  document.getElementById('pvLikes').textContent=post.likes.toLocaleString('fr-FR')+' J\'aime';
+  document.getElementById('pvDesc').innerHTML=post.description?'<strong>'+uname+'</strong> '+post.description:'';
+  document.getElementById('pvDate').textContent=post.date;
+  if(post.type==='reel'){document.getElementById('pvViews').style.display='';document.getElementById('pvViews').textContent=post.views.toLocaleString('fr-FR')+' vues';}
+  else document.getElementById('pvViews').style.display='none';
+  const commentsEl=document.getElementById('pvComments'); commentsEl.innerHTML='';
+  post.comments.forEach(c=>{const div=document.createElement('div');div.className='pv-comment-row';div.innerHTML='<strong>'+c.user+'</strong> '+c.text;commentsEl.appendChild(div);});
+  pvBuildCarousel(post);
+  document.getElementById('pvLikeBtn').classList.remove('liked');
+  document.getElementById('postViewerOverlay').classList.add('show');
+}
+
+function pvBuildCarousel(post){
+  const track=document.getElementById('pvTrack'),dots=document.getElementById('pvDots');
+  track.innerHTML='';dots.innerHTML='';track.style.transform='translateX(0)';pvState.slideIdx=0;
+  post.photos.forEach((url,i)=>{
+    const slide=document.createElement('div');slide.className='pv-carousel-slide';
+    const img=document.createElement('img');img.src=url;slide.appendChild(img);track.appendChild(slide);
+    const dot=document.createElement('div');dot.className='pv-dot'+(i===0?' on':'');dots.appendChild(dot);
+  });
+  const many=post.photos.length>1;
+  document.getElementById('pvArrowL').style.display=many?'':'none';
+  document.getElementById('pvArrowR').style.display=many?'':'none';
+  if(!many)dots.innerHTML='';
+}
+
+function pvSlide(dir){
+  pvState.slideIdx=Math.max(0,Math.min(pvState.post.photos.length-1,pvState.slideIdx+dir));
+  document.getElementById('pvTrack').style.transform='translateX(-'+pvState.slideIdx*100+'%)';
+  document.querySelectorAll('.pv-dot').forEach((d,i)=>d.classList.toggle('on',i===pvState.slideIdx));
+}
+
+function pvToggleLike(){
+  pvState.liked=!pvState.liked;
+  document.getElementById('pvLikeBtn').classList.toggle('liked',pvState.liked);
+  document.getElementById('pvLikes').textContent=(pvState.post.likes+(pvState.liked?1:0)).toLocaleString('fr-FR')+' J\'aime';
+}
+
+function pvAddComment(){
+  const input=document.getElementById('pvCommentInput'),text=input.value.trim();if(!text)return;
+  const user=document.getElementById('simUsername').value.replace('@','')||'vous';
+  pvState.post.comments.push({user:'@'+user,text});
+  const div=document.createElement('div');div.className='pv-comment-row';div.innerHTML='<strong>@'+user+'</strong> '+text;
+  document.getElementById('pvComments').appendChild(div);input.value='';
+}
+
+function closePostViewer(e){ if(e&&e.target!==document.getElementById('postViewerOverlay'))return; document.getElementById('postViewerOverlay').classList.remove('show'); }
+
+/* ═══════════════════════════════════
+   STORY VIEWER
+═══════════════════════════════════ */
+let storyState={hlIdx:0,stickers:[]};
+
+function openStoryViewer(hlIdx){
+  storyState={hlIdx,stickers:[]};
+  const hl=sim.highlights[hlIdx]; if(!hl)return;
+  const ava=document.getElementById('storyAva');
+  ava.innerHTML=sim.avatar?'<img src="'+sim.avatar+'">':'<div class="story-ava-ph"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" fill="#888"/><path d="M2 18c0-4.4 3.6-8 8-8s8 3.6 8 8" fill="#888"/></svg></div>';
+  document.getElementById('storyUsername').textContent=document.getElementById('simUsername').value.replace('@','')||'votre_compte';
+  const bgImg=document.getElementById('storyBgImg'),bgColor=document.getElementById('storyBgColor');
+  if(hl.img){bgImg.src=hl.img;bgImg.style.display='block';bgColor.style.display='none';}
+  else{bgImg.style.display='none';bgColor.style.display='block';}
+  const bars=document.getElementById('storyProgBars'); bars.innerHTML='';
+  sim.highlights.forEach((h,i)=>{
+    const seg=document.createElement('div');seg.className='story-prog-seg';
+    const fill=document.createElement('div');fill.className='story-prog-fill'+(i<hlIdx?' done':i===hlIdx?' active':'');
+    seg.appendChild(fill);bars.appendChild(seg);
+  });
+  document.getElementById('storyStickers').innerHTML='';
+  if(hl.stickers)hl.stickers.forEach(s=>placeSticker(s.type,s.text,s.x,s.y));
+  document.getElementById('storyOverlay').classList.add('show');
+}
+
+function closeStory(){
+  const hl=sim.highlights[storyState.hlIdx];
+  if(hl){
+    hl.stickers=[];
+    document.getElementById('storyStickers').querySelectorAll('.story-sticker').forEach(el=>{
+      hl.stickers.push({type:el.dataset.type,text:el.dataset.text||el.textContent,x:parseFloat(el.style.left),y:parseFloat(el.style.top)});
+    });
+  }
+  document.getElementById('storyOverlay').classList.remove('show');
+}
+
+function storyNav(dir){ const n=storyState.hlIdx+dir; if(n>=0&&n<sim.highlights.length)openStoryViewer(n); else if(dir>0)closeStory(); }
+
+function addSticker(type){
+  const defs={text:'Mon texte',emoji:'\u{1F60D}',location:'Paris, France',countdown:'Bientot !'};
+  const txt=window.prompt(type==='emoji'?'Entre un emoji :':type==='location'?'Lieu :':type==='countdown'?'Compte a rebours :':'Ton texte :',defs[type]);
+  if(txt===null)return;
+  placeSticker(type,txt||defs[type],25+Math.random()*50,25+Math.random()*35);
+}
+
+function placeSticker(type,text,x,y){
+  const layer=document.getElementById('storyStickers');
+  const el=document.createElement('div');
+  el.className='story-sticker'; el.dataset.type=type; el.dataset.text=text;
+  el.style.left=x+'%'; el.style.top=y+'%';
+  if(type==='text')el.innerHTML='<div class="sticker-text">'+text+'</div>';
+  else if(type==='emoji')el.innerHTML='<div class="sticker-emoji">'+text+'</div>';
+  else if(type==='location')el.innerHTML='<div class="sticker-location"><svg width="10" height="12" viewBox="0 0 10 12" fill="none"><path d="M5 1C3.1 1 1.5 2.6 1.5 4.5c0 2.7 3.5 6.5 3.5 6.5s3.5-3.8 3.5-6.5C8.5 2.6 6.9 1 5 1z" fill="#0095f6"/></svg>'+text+'</div>';
+  else if(type==='countdown')el.innerHTML='<div class="sticker-countdown"><div style="font-size:0.6rem;color:#0095f6;margin-bottom:2px">COMPTE A REBOURS</div><div style="font-size:1.1rem;font-weight:800">00:00:00</div><div style="font-size:0.65rem">'+text+'</div></div>';
+  let isDragging=false,startX,startY,startL,startT;
+  el.addEventListener('mousedown',e=>{e.stopPropagation();isDragging=true;startX=e.clientX;startY=e.clientY;startL=parseFloat(el.style.left);startT=parseFloat(el.style.top);});
+  window.addEventListener('mousemove',e=>{
+    if(!isDragging)return;
+    const phone=document.getElementById('storyPhone'),rect=phone.getBoundingClientRect();
+    const dx=(e.clientX-startX)/rect.width*100,dy=(e.clientY-startY)/rect.height*100;
+    el.style.left=Math.max(0,Math.min(85,startL+dx))+'%'; el.style.top=Math.max(0,Math.min(85,startT+dy))+'%';
+  });
+  window.addEventListener('mouseup',()=>isDragging=false);
+  el.addEventListener('dblclick',()=>{
+    const n=window.prompt('Modifier :',el.dataset.text||'');
+    if(n!==null){el.remove();placeSticker(type,n,parseFloat(el.style.left),parseFloat(el.style.top));}
+  });
+  layer.appendChild(el);
+}
+
+/* ── LIB → SIM ── */
+function sendLibItemToSim(i){
+  const item=library[i]; let slot=sim.grid.findIndex(x=>!x); if(slot===-1)slot=0;
+  sim.grid[slot]=makePost([item.dataURL]); renderGrid();
+  showToast('Photo envoyee dans le simulateur (case '+(slot+1)+')');
+}
 /* ═══════════════════════════════════
    PROGRESS OVERLAY
 ═══════════════════════════════════ */
@@ -2067,6 +2769,224 @@ function showToast(msg) {
 
 window.addEventListener('resize', () => { if (ct.img) drawCrop(); });
 
+
+/* == GLOBAL LIBRARY ENGINE == */
+function addToLibrary(dataURL, label, source) {
+  library.push({ dataURL, fmt: label, label, source: source||'direct' });
+  renderLibraryDrawer();
+  updateLibBadge();
+  showToast('Photo ajoutee a la bibliotheque');
+}
+
+function updateLibBadge() {
+  var n = library.length;
+  var badge = document.getElementById('libBadge');
+  var countEl = document.getElementById('libDrawerCount');
+  if(badge){ badge.textContent=n; badge.classList.toggle('show', n>0); }
+  if(countEl) countEl.textContent = n+(n>1?' photos':' photo');
+  var cpc = document.getElementById('cellPickLibCount');
+  if(cpc) cpc.textContent = n+(n>1?' photos disponibles':' photo disponible');
+}
+
+function toggleLibDrawer() {
+  var drawer=document.getElementById('libDrawer'), dimmer=document.getElementById('libDimmer');
+  var isOpen=drawer.classList.contains('open');
+  if(isOpen){ drawer.classList.remove('open'); dimmer.classList.remove('show'); cancelLibPick(); }
+  else { renderLibraryDrawer(); drawer.classList.add('open'); dimmer.classList.add('show'); }
+}
+
+function closeLibDrawer() {
+  document.getElementById('libDrawer').classList.remove('open');
+  document.getElementById('libDimmer').classList.remove('show');
+  cancelLibPick();
+}
+
+function renderLibraryDrawer() {
+  var grid=document.getElementById('libDrawerGrid'), empty=document.getElementById('libDrawerEmpty');
+  if(!grid) return;
+  if(library.length===0){ empty.style.display=''; grid.style.display='none'; updateLibBadge(); return; }
+  empty.style.display='none'; grid.style.display='';
+  grid.innerHTML='';
+  library.forEach(function(item,i){
+    var div=document.createElement('div');
+    div.className='lib-thumb'+(libPickSelection.includes(i)?' selected':'');
+    var img=document.createElement('img'); img.src=item.dataURL; div.appendChild(img);
+    var badge=document.createElement('div'); badge.className='lib-thumb-badge';
+    var srcLabel={crop:'Recadrage',tri:'Triptyque',direct:'Import',sim:'Sim'}[item.source]||item.source;
+    badge.textContent=srcLabel; div.appendChild(badge);
+    var del=document.createElement('button'); del.className='lib-thumb-del';
+    del.innerHTML='&times;';
+    del.onclick=function(e){ e.stopPropagation(); library.splice(i,1); renderLibraryDrawer(); renderLibrary(); updateLibBadge(); };
+    div.appendChild(del);
+    div.onclick=function(){
+      if(libPickMode){
+        var idx=libPickSelection.indexOf(i);
+        if(idx===-1) libPickSelection.push(i); else libPickSelection.splice(idx,1);
+        renderLibraryDrawer();
+        var ce=document.getElementById('libPickerCount');
+        if(ce) ce.textContent=libPickSelection.length+(libPickSelection.length>1?' selectionnees':' selectionnee');
+      }
+    };
+    grid.appendChild(div);
+  });
+  updateLibBadge();
+}
+
+function triggerLibDirectImport() {
+  var fi=document.getElementById('libDirectImportInput'); fi.value='';
+  fi.onchange=function(){
+    Array.from(fi.files).forEach(function(file){
+      var r=new FileReader(); r.onload=function(e){ addToLibrary(e.target.result,'Import','direct'); }; r.readAsDataURL(file);
+    });
+  }; fi.click();
+}
+
+function clearAllLibrary() {
+  if(!confirm('Vider toute la bibliotheque ?')) return;
+  library.length=0; renderLibraryDrawer(); renderLibrary(); updateLibBadge();
+}
+
+var libPickMode=false, libPickSelection=[], libPickCallback=null, libPickCellIdx=null, libPickCellArr=null;
+
+function toggleEditorLibPicker() {
+  var picker = document.getElementById('editorLibPicker');
+  var isOpen = picker.style.display !== 'none';
+  if (isOpen) {
+    picker.style.display = 'none';
+    document.getElementById('editorLibToggleBtn').textContent = '+ Bibliotheque';
+    return;
+  }
+  // Render library photos inline
+  var grid = document.getElementById('editorLibGrid');
+  var empty = document.getElementById('editorLibEmpty');
+  grid.innerHTML = '';
+  if (library.length === 0) {
+    empty.style.display = '';
+    grid.style.display = 'none';
+  } else {
+    empty.style.display = 'none';
+    grid.style.display = '';
+    library.forEach(function(item, i) {
+      var div = document.createElement('div');
+      div.style.cssText = 'position:relative;aspect-ratio:1/1;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .15s;';
+      var img = document.createElement('img');
+      img.src = item.dataURL;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      div.appendChild(img);
+      div.onclick = function() {
+        editorState.photos.push(item.dataURL);
+        renderEditorPhotos();
+        showToast('Photo ajoutee au carrousel');
+        // flash border
+        div.style.borderColor = 'var(--accent)';
+        setTimeout(function(){ div.style.borderColor = 'transparent'; }, 600);
+      };
+      div.onmouseover = function(){ div.style.transform = 'scale(1.05)'; };
+      div.onmouseout  = function(){ div.style.transform = ''; };
+      grid.appendChild(div);
+    });
+  }
+  picker.style.display = '';
+  document.getElementById('editorLibToggleBtn').textContent = 'Fermer';
+}
+
+function openLibPickerForEditor() {
+  if(library.length===0){ showToast('La bibliotheque est vide — importe des photos'); return; }
+  libPickMode=true; libPickSelection=[]; libPickCallback='editor';
+  renderLibraryDrawer();
+  document.getElementById('libPickerBar').classList.add('show');
+  document.getElementById('libPickerCount').textContent='0 selectionnee';
+  document.getElementById('libPickConfirm').textContent='Ajouter';
+  document.getElementById('libDrawer').classList.add('open');
+  document.getElementById('libDimmer').classList.add('show');
+}
+
+function cancelLibPick() {
+  libPickMode=false; libPickSelection=[];
+  document.getElementById('libPickerBar').classList.remove('show');
+  renderLibraryDrawer();
+}
+
+function confirmLibPick() {
+  if(libPickSelection.length===0) return;
+  if(libPickCallback==='editor'){
+    libPickSelection.forEach(function(idx){ editorState.photos.push(library[idx].dataURL); });
+    renderEditorPhotos();
+    showToast(libPickSelection.length+' photo(s) ajoutee(s)');
+  } else if(libPickCallback==='cell' && libPickCellIdx!==null){
+    var dataURL=library[libPickSelection[0]].dataURL;
+    var arr=libPickCellArr||sim.grid;
+    arr[libPickCellIdx]=makePost([dataURL]);
+    renderGrid(); syncProfile();
+    showToast('Photo ajoutee case '+(libPickCellIdx+1));
+  }
+  closeLibDrawer(); cancelLibPick();
+  document.getElementById('cellPickerOverlay').classList.remove('show');
+}
+
+function saveTriToLib(i){
+  if(!triCrop[i]){ showToast('Lance le triptyque!'); return; }
+  var sx=triCrop[i].sx,sy=triCrop[i].sy,sw=triCrop[i].sw,sh=triCrop[i].sh;
+  var can=document.createElement('canvas'); can.width=Math.round(sw); can.height=Math.round(sh);
+  can.getContext('2d').drawImage(triImg,sx,sy,sw,sh,0,0,can.width,can.height);
+  addToLibrary(can.toDataURL('image/png'),'1:1','tri');
+}
+function saveAllTriToLib(){ for(var i=0;i<3;i++) saveTriToLib(i); }
+
+function openCellPicker(idx,arr){
+  libPickCellIdx=idx; libPickCellArr=arr||sim.grid;
+  var cpc=document.getElementById('cellPickLibCount');
+  if(cpc) cpc.textContent=library.length+(library.length>1?' photos disponibles':' photo disponible');
+  document.getElementById('cellPickerOverlay').classList.add('show');
+}
+function closeCellPicker(){ document.getElementById('cellPickerOverlay').classList.remove('show'); }
+
+function cellPickFile(){
+  closeCellPicker();
+  var arr=libPickCellArr, idx=libPickCellIdx;
+  var fi=document.getElementById('gridFileInput'); fi.removeAttribute('multiple'); fi.value='';
+  fi.onchange=function(){
+    if(fi.files[0]){
+      var r=new FileReader(); r.onload=function(e){ arr[idx]=makePost([e.target.result]); renderGrid(); syncProfile(); }; r.readAsDataURL(fi.files[0]);
+    }
+  }; fi.click();
+}
+
+function cellPickFromLibrary(){
+  if(library.length===0){ showToast('La bibliotheque est vide!'); return; }
+  closeCellPicker();
+  libPickMode=true; libPickSelection=[]; libPickCallback='cell';
+  renderLibraryDrawer();
+  document.getElementById('libPickerBar').classList.add('show');
+  document.getElementById('libPickerCount').textContent='0 selectionnee';
+  document.getElementById('libPickConfirm').textContent='Choisir';
+  document.getElementById('libDrawer').classList.add('open');
+  document.getElementById('libDimmer').classList.add('show');
+}
+
+function saveCellToLib(idx,tab){
+  var arr=tab==='reels'?sim.reelsGrid:tab==='tagged'?sim.taggedGrid:sim.grid;
+  var post=arr[idx]; if(!post||!post.photos||!post.photos[0]) return;
+  addToLibrary(post.photos[post.coverIdx||0],'1:1','sim');
+}
+
+function sendLibItemToSim(i){
+  var item=library[i]; var slot=sim.grid.findIndex(function(x){return !x;}); if(slot===-1)slot=0;
+  sim.grid[slot]=makePost([item.dataURL]); renderGrid();
+  showToast('Photo envoyee (case '+(slot+1)+')');
+}
+
+function saveCropToLibrary(){
+  if(!ct.img) return;
+  var F=CROP_FMTS[ct.fmt];
+  var bounds=getCropBounds();
+  var sx=ct.cx-bounds.cropW/2, sy=ct.cy-bounds.cropH/2;
+  var tmp=document.createElement('canvas'); tmp.width=F.w; tmp.height=F.h;
+  tmp.getContext('2d').drawImage(ct.img,sx,sy,bounds.cropW,bounds.cropH,0,0,F.w,F.h);
+  addToLibrary(tmp.toDataURL('image/png'),CROP_FMTS[ct.fmt].label,'crop');
+}
+
+
 /* Init */
 renderGrid();
 renderHlList();
@@ -2077,5 +2997,60 @@ syncProfile();
 <!-- Footer -->
 <footer style="text-align:center;padding:32px 24px 40px;border-top:0.5px solid rgba(0,0,0,0.08);margin-top:0;">
   <p style="font-size:0.75rem;color:#aeaeb2;letter-spacing:0.01em;line-height:1.8;">
-    Créé par <span style="color:#1d1d1f;font-weight:600;">felix.scher</span>
-    <span styl
+    Cr&eacute;&eacute; par <span style="color:#1d1d1f;font-weight:600;">felix.scher</span>
+    <span style="color:#c7c7cc;margin:0 6px;">&middot;</span>
+    <span style="color:#6e6e73;">aide</span>
+    <span style="color:#c7c7cc;margin:0 6px;">&middot;</span>
+    <span style="color:#aeaeb2;">Claude IA</span>
+  </p>
+</footer>
+
+<!-- FLOATING LIBRARY -->
+<div class="lib-dimmer" id="libDimmer" onclick="closeLibDrawer()"></div>
+<button class="lib-fab" id="libFab" onclick="toggleLibDrawer()" title="Bibliotheque">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  <span class="lib-badge" id="libBadge">0</span>
+</button>
+<div class="lib-drawer" id="libDrawer">
+  <div class="lib-drawer-header">
+    <span class="lib-drawer-title">Biblioth&egrave;que</span>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="libDrawerCount" style="font-size:.75rem;color:var(--text2)">0 photo</span>
+      <button class="lib-drawer-close" onclick="closeLibDrawer()">&times;</button>
+    </div>
+  </div>
+  <div class="lib-drawer-actions">
+    <button class="btn btn-blue btn-sm" style="flex:1;justify-content:center" onclick="triggerLibDirectImport()">+ Importer</button>
+    <button class="btn btn-gray btn-sm" onclick="clearAllLibrary()">Tout vider</button>
+  </div>
+  <div class="lib-drawer-body" id="libDrawerBody">
+    <div class="lib-empty-state" id="libDrawerEmpty">Ta biblioth&egrave;que est vide.<br>Importe, recadre ou sauvegarde ton triptyque.</div>
+    <div class="lib-drawer-grid" id="libDrawerGrid" style="display:none"></div>
+  </div>
+  <div class="lib-picker-bar" id="libPickerBar">
+    <span class="lib-picker-count" id="libPickerCount">0 s&eacute;lectionn&eacute;e</span>
+    <button class="btn btn-gray btn-sm" onclick="cancelLibPick()">Annuler</button>
+    <button class="btn btn-blue btn-sm" id="libPickConfirm" onclick="confirmLibPick()">Ajouter</button>
+  </div>
+</div>
+
+<!-- CELL PICKER -->
+<div class="cell-picker-overlay" id="cellPickerOverlay" onclick="if(event.target===this)closeCellPicker()">
+  <div class="cell-picker-card">
+    <div class="cell-picker-title">Ajouter une photo</div>
+    <button class="cell-picker-btn" onclick="cellPickFile()">
+      <div class="pick-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="18" height="14" rx="3"/><circle cx="7" cy="9" r="2"/><path d="M1 16l5-5 4 4 3-3 6 5"/></svg></div>
+      <div><div>Depuis un fichier</div><div style="font-size:.72rem;color:var(--text2);font-weight:400">JPG, PNG, WEBP</div></div>
+    </button>
+    <button class="cell-picker-btn" onclick="cellPickFromLibrary()">
+      <div class="pick-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="8" height="8" rx="1"/><rect x="11" y="1" width="8" height="8" rx="1"/><rect x="1" y="11" width="8" height="8" rx="1"/><rect x="11" y="11" width="8" height="8" rx="1"/></svg></div>
+      <div><div>Depuis la biblioth&egrave;que</div><div id="cellPickLibCount" style="font-size:.72rem;color:var(--text2);font-weight:400">0 photo disponible</div></div>
+    </button>
+    <button class="btn btn-gray" style="width:100%;justify-content:center;margin-top:2px" onclick="closeCellPicker()">Annuler</button>
+  </div>
+</div>
+
+<input type="file" id="libDirectImportInput" accept="image/*" multiple>
+
+</body>
+</html>
